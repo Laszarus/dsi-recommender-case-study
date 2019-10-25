@@ -52,12 +52,16 @@ But how do we decide how many of these latent features to use? If we decided the
 ## Metrics
 | Metric | Current Model |  Proposed Model | Change |
 |---|---|---|---|
-| Runtime  | 3.14 s  | ?  |  ? |
-| Error  | 1.02  | ?  |  ? |
+| Model Runtime  | 65 s  | 10.3 s  |  -84% |
+| User Recommendation Time  | ?  | 22.5 s | ? |
+| Error  | 1.02  | 0.86  |  -15.7% |
+
 &nbsp;
-
 ## Sample Recommendations
-
+|  User | 1st  | 2nd  |  3rd | 4th  | 5th  |
+|---|---|---|---|---|---|
+| Nick Jacobsohn  |  Gate of Heavenly Peace | Hearts and Minds | About Time | This Is Spinal Tap | Sanjuro |
+|  Kayla Thomas |  Pride and Prejudice (1940) | Firelight | The Ballad of Ramblin' Jack | Among Giants | Love and Basketball | 
 
 &nbsp;
 
@@ -66,5 +70,5 @@ We propose initally rolling out this recommendation engine to a random subset of
 &nbsp;
 
 ## Resources
-* [Building and Testing Recommender Systems With Surprise, Step-By-Step](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#links)
-* FunkSVD - [title](link)
+* [Building and Testing Recommender Systems With Surprise, Step-By-Step](https://towardsdatascience.com/building-and-testing-recommender-systems-with-surprise-step-by-step-d4ba702ef80b)
+* [FunkSVD](https://github.com/gbolmier/funk-svd)
