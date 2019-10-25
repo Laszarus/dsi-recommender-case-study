@@ -3,10 +3,13 @@ Mike De Lancey, Vanessa Davis, Nick Gyongyosi, Fred Berendse
 
 ## Data Analysis
 ![images/ratingdistribution.png](images/ratingdistribution.png)
+&nbsp;
 
 ![images/mostrated.png](images/mostrated.png)
+&nbsp;
 
 ![images/userratingcount.png](images/userratingcount.png)
+&nbsp;
 
 ## The Current Recommender
 
@@ -21,6 +24,7 @@ However, you might hedge your bets knowing that you hang out with friends who lo
 
 
 Our example raises some key drawbacks with the "mean of means" algorithm: it doesn't consider the facts that a user prefers to have certain features in their movies (lots of action, a blonde protagonist, or a wicked plot twist) and that not every movie has the same features.
+&nbsp;
 
 ## The Proposed Recommender
 
@@ -43,26 +47,23 @@ So how does matrix factorization predict a user's rating for a movie (s)he has n
 ![images/matrix-fact3.png](images/matrix-fact3.png)
 
 But how do we decide how many of these latent features to use? If we decided there are a large number of important features, we would be able to use our two tables to precisely compute how each user would rate each movie. However, splitting these tables is computationally expensive, so we try to limit the number of latent movie features to a small number. However, choosing a smaller number of latent features results some accuracy loss when we combine the two tables together to calculate a predicted rating. This is a tradeoff we attempt to optimize in our model.
-
-
+&nbsp;
 
 ## Metrics
 | Metric | Current Model |  Proposed Model | Change |
 |---|---|---|---|
 | Runtime  | 3.14 s  | ?  |  ? |
 | Error  | 1.02  | ?  |  ? |
-
-
+&nbsp;
 
 ## Sample Recommendations
 
 
-
+&nbsp;
 
 ## Implementation Strategy
 We propose initally rolling out this recommendation engine to a random subset of the total userbase, perhaps 10% of the total population. To ensure the new recommendation engine is performing better than the existing system we would split the 10% of users in the experiment in half - one set getting the existing solution (the control set) and the other set receiving the proposed solution (the variant set). After some time, maybe a month, we would assess the results of both models and determine if the new recommendation algorithm performs significantly better than the existing solution. If the new solution does in fact perform better we would then roll it out to the entire user-base.
-
-
+&nbsp;
 
 ## Resources
 * [Building and Testing Recommender Systems With Surprise, Step-By-Step](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet#links)
