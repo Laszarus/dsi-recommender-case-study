@@ -1,7 +1,7 @@
 # Movie Recommender Upgrade
 Mike De Lancey, Vanessa Davis, Nick Gyongyosi, Fred Berendse
 
-## EDA
+## Data Analysis
 ![images/ratingdistribution.png](images/ratingdistribution.png)
 
 ![images/mostrated.png](images/mostrated.png)
