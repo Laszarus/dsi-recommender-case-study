@@ -2,6 +2,10 @@
 Mike De Lancey, Vanessa Davis, Nick Gyongyosi, Fred Berendse
 
 ## Data Analysis
+![images/ratingdistribution.png](images/eda1.png)
+
+![images/ratingdistribution.png](images/EDA2.png)
+
 ![images/ratingdistribution.png](images/ratingdistribution.png)
 &nbsp;
 
