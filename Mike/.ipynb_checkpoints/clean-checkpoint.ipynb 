@@ -9,11 +9,12 @@
     "import pandas as pd\n",
     "import pyspark\n",
     "from pyspark.sql import SparkSession\n",
+    "from pyspark.sql import SQLContext\n",
     "import numpy as np\n",
     "from pyspark.ml.evaluation import RegressionEvaluator\n",
     "from pyspark.ml.recommendation import ALS\n",
     "import time\n",
-    "seconds = time.time()"
+    "spark = SparkSession.builder.getOrCreate()"
    ]
   },
   {
@@ -26,12 +27,26 @@
    ]
   },
   {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "#100K\n",
+    "#pd_ratings= pd.read_csv('../data/movies/ratings.csv')\n",
+    "#20 million\n",
+    "pd_ratings= pd.read_csv('../data/movies/ml-20m/ratings.csv')"
+   ]
+  },
+  {
    "cell_type": "code",
    "execution_count": 3,
    "metadata": {},
    "outputs": [],
    "source": [
-    "pd_ratings= pd.read_csv('../data/movies/ratings.csv')"
+    "#100K\n",
+    "\n",
+    "#pd_ratings= pd.read_csv('../data/movies/ratings.csv')\n",
+    "#20 mil\n",
+    "#pd_ratings= pd.read_csv('../data/movies/ml-20m/ratings.csv')\n"
    ]
   },
   {
@@ -43,13 +58,14 @@
      "name": "stdout",
      "output_type": "stream",
      "text": [
-      "6.890747308731079\n"
+      "7.652092933654785\n"
      ]
     }
    ],
    "source": [
-    "spark = SparkSession.builder.getOrCreate()\n",
-    "spark_ratings= spark.createDataFrame(pd_ratings) \n",
+    "\n",
+    "#spark_ratings= spark.createDataFrame(pd_ratings) \n",
+    "spark_ratings = spark.read.csv('../data/movies/ml-20m/ratings.csv',header=True,inferSchema=True)\n",
     "train, test = spark_ratings.randomSplit([0.8, 0.2], seed=42)\n",
     "load_time=time.time()\n",
     "print(load_time-start_time)"
@@ -58,6 +74,48 @@
   {
    "cell_type": "code",
    "execution_count": 5,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "+------+-------+------+----------+\n",
+      "|userId|movieId|rating| timestamp|\n",
+      "+------+-------+------+----------+\n",
+      "|     1|      2|   3.5|1112486027|\n",
+      "|     1|     50|   3.5|1112484580|\n",
+      "|     1|    112|   3.5|1094785740|\n",
+      "|     1|    151|   4.0|1094785734|\n",
+      "|     1|    223|   4.0|1112485573|\n",
+      "|     1|    253|   4.0|1112484940|\n",
+      "|     1|    260|   4.0|1112484826|\n",
+      "|     1|    293|   4.0|1112484703|\n",
+      "|     1|    296|   4.0|1112484767|\n",
+      "|     1|    318|   4.0|1112484798|\n",
+      "|     1|    367|   3.5|1112485980|\n",
+      "|     1|    541|   4.0|1112484603|\n",
+      "|     1|    593|   3.5|1112484661|\n",
+      "|     1|    653|   3.0|1094785691|\n",
+      "|     1|    919|   3.5|1094785621|\n",
+      "|     1|    924|   3.5|1094785598|\n",
+      "|     1|   1009|   3.5|1112486013|\n",
+      "|     1|   1036|   4.0|1112485480|\n",
+      "|     1|   1079|   4.0|1094785665|\n",
+      "|     1|   1080|   3.5|1112485375|\n",
+      "+------+-------+------+----------+\n",
+      "only showing top 20 rows\n",
+      "\n"
+     ]
+    }
+   ],
+   "source": [
+    "train.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
    "metadata": {},
    "outputs": [],
    "source": [
@@ -73,14 +131,24 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 6,
+   "execution_count": 7,
    "metadata": {},
    "outputs": [
     {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "3.964160203933716\n"
+     "ename": "Py4JJavaError",
+     "evalue": "An error occurred while calling o33.fit.\n: org.apache.spark.SparkException: Job aborted due to stage failure: Task 8 in stage 6.0 failed 1 times, most recent failure: Lost task 8.0 in stage 6.0 (TID 47, localhost, executor driver): java.lang.OutOfMemoryError: Java heap space\n\tat scala.collection.mutable.ArrayBuilder$ofInt.mkArray(ArrayBuilder.scala:335)\n\tat scala.collection.mutable.ArrayBuilder$ofInt.result(ArrayBuilder.scala:383)\n\tat scala.collection.mutable.ArrayBuilder$ofInt.result(ArrayBuilder.scala:328)\n\tat org.apache.spark.ml.recommendation.ALS$UncompressedInBlockBuilder.build(ALS.scala:1391)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$23.apply(ALS.scala:1599)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$23.apply(ALS.scala:1593)\n\tat org.apache.spark.rdd.PairRDDFunctions$$anonfun$mapValues$1$$anonfun$apply$37$$anonfun$apply$38.apply(PairRDDFunctions.scala:757)\n\tat org.apache.spark.rdd.PairRDDFunctions$$anonfun$mapValues$1$$anonfun$apply$37$$anonfun$apply$38.apply(PairRDDFunctions.scala:757)\n\tat scala.collection.Iterator$$anon$11.next(Iterator.scala:410)\n\tat org.apache.spark.storage.memory.MemoryStore.putIterator(MemoryStore.scala:222)\n\tat org.apache.spark.storage.memory.MemoryStore.putIteratorAsValues(MemoryStore.scala:299)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1165)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.doPut(BlockManager.scala:1091)\n\tat org.apache.spark.storage.BlockManager.doPutIterator(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.getOrElseUpdate(BlockManager.scala:882)\n\tat org.apache.spark.rdd.RDD.getOrCompute(RDD.scala:335)\n\tat org.apache.spark.rdd.RDD.iterator(RDD.scala:286)\n\tat org.apache.spark.rdd.MapPartitionsRDD.compute(MapPartitionsRDD.scala:52)\n\tat org.apache.spark.rdd.RDD.computeOrReadCheckpoint(RDD.scala:324)\n\tat org.apache.spark.rdd.RDD$$anonfun$7.apply(RDD.scala:337)\n\tat org.apache.spark.rdd.RDD$$anonfun$7.apply(RDD.scala:335)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1165)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.doPut(BlockManager.scala:1091)\n\tat org.apache.spark.storage.BlockManager.doPutIterator(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.getOrElseUpdate(BlockManager.scala:882)\n\tat org.apache.spark.rdd.RDD.getOrCompute(RDD.scala:335)\n\tat org.apache.spark.rdd.RDD.iterator(RDD.scala:286)\n\tat org.apache.spark.scheduler.ResultTask.runTask(ResultTask.scala:90)\n\tat org.apache.spark.scheduler.Task.run(Task.scala:123)\n\tat org.apache.spark.executor.Executor$TaskRunner$$anonfun$10.apply(Executor.scala:408)\n\nDriver stacktrace:\n\tat org.apache.spark.scheduler.DAGScheduler.org$apache$spark$scheduler$DAGScheduler$$failJobAndIndependentStages(DAGScheduler.scala:1889)\n\tat org.apache.spark.scheduler.DAGScheduler$$anonfun$abortStage$1.apply(DAGScheduler.scala:1877)\n\tat org.apache.spark.scheduler.DAGScheduler$$anonfun$abortStage$1.apply(DAGScheduler.scala:1876)\n\tat scala.collection.mutable.ResizableArray$class.foreach(ResizableArray.scala:59)\n\tat scala.collection.mutable.ArrayBuffer.foreach(ArrayBuffer.scala:48)\n\tat org.apache.spark.scheduler.DAGScheduler.abortStage(DAGScheduler.scala:1876)\n\tat org.apache.spark.scheduler.DAGScheduler$$anonfun$handleTaskSetFailed$1.apply(DAGScheduler.scala:926)\n\tat org.apache.spark.scheduler.DAGScheduler$$anonfun$handleTaskSetFailed$1.apply(DAGScheduler.scala:926)\n\tat scala.Option.foreach(Option.scala:257)\n\tat org.apache.spark.scheduler.DAGScheduler.handleTaskSetFailed(DAGScheduler.scala:926)\n\tat org.apache.spark.scheduler.DAGSchedulerEventProcessLoop.doOnReceive(DAGScheduler.scala:2110)\n\tat org.apache.spark.scheduler.DAGSchedulerEventProcessLoop.onReceive(DAGScheduler.scala:2059)\n\tat org.apache.spark.scheduler.DAGSchedulerEventProcessLoop.onReceive(DAGScheduler.scala:2048)\n\tat org.apache.spark.util.EventLoop$$anon$1.run(EventLoop.scala:49)\n\tat org.apache.spark.scheduler.DAGScheduler.runJob(DAGScheduler.scala:737)\n\tat org.apache.spark.SparkContext.runJob(SparkContext.scala:2061)\n\tat org.apache.spark.SparkContext.runJob(SparkContext.scala:2082)\n\tat org.apache.spark.SparkContext.runJob(SparkContext.scala:2101)\n\tat org.apache.spark.SparkContext.runJob(SparkContext.scala:2126)\n\tat org.apache.spark.rdd.RDD.count(RDD.scala:1168)\n\tat org.apache.spark.ml.recommendation.ALS$.train(ALS.scala:932)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$fit$1.apply(ALS.scala:676)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$fit$1.apply(ALS.scala:658)\n\tat org.apache.spark.ml.util.Instrumentation$$anonfun$11.apply(Instrumentation.scala:185)\n\tat scala.util.Try$.apply(Try.scala:192)\n\tat org.apache.spark.ml.util.Instrumentation$.instrumented(Instrumentation.scala:185)\n\tat org.apache.spark.ml.recommendation.ALS.fit(ALS.scala:658)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:498)\n\tat py4j.reflection.MethodInvoker.invoke(MethodInvoker.java:244)\n\tat py4j.reflection.ReflectionEngine.invoke(ReflectionEngine.java:357)\n\tat py4j.Gateway.invoke(Gateway.java:282)\n\tat py4j.commands.AbstractCommand.invokeMethod(AbstractCommand.java:132)\n\tat py4j.commands.CallCommand.execute(CallCommand.java:79)\n\tat py4j.GatewayConnection.run(GatewayConnection.java:238)\n\tat java.lang.Thread.run(Thread.java:748)\nCaused by: java.lang.OutOfMemoryError: Java heap space\n\tat scala.collection.mutable.ArrayBuilder$ofInt.mkArray(ArrayBuilder.scala:335)\n\tat scala.collection.mutable.ArrayBuilder$ofInt.result(ArrayBuilder.scala:383)\n\tat scala.collection.mutable.ArrayBuilder$ofInt.result(ArrayBuilder.scala:328)\n\tat org.apache.spark.ml.recommendation.ALS$UncompressedInBlockBuilder.build(ALS.scala:1391)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$23.apply(ALS.scala:1599)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$23.apply(ALS.scala:1593)\n\tat org.apache.spark.rdd.PairRDDFunctions$$anonfun$mapValues$1$$anonfun$apply$37$$anonfun$apply$38.apply(PairRDDFunctions.scala:757)\n\tat org.apache.spark.rdd.PairRDDFunctions$$anonfun$mapValues$1$$anonfun$apply$37$$anonfun$apply$38.apply(PairRDDFunctions.scala:757)\n\tat scala.collection.Iterator$$anon$11.next(Iterator.scala:410)\n\tat org.apache.spark.storage.memory.MemoryStore.putIterator(MemoryStore.scala:222)\n\tat org.apache.spark.storage.memory.MemoryStore.putIteratorAsValues(MemoryStore.scala:299)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1165)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.doPut(BlockManager.scala:1091)\n\tat org.apache.spark.storage.BlockManager.doPutIterator(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.getOrElseUpdate(BlockManager.scala:882)\n\tat org.apache.spark.rdd.RDD.getOrCompute(RDD.scala:335)\n\tat org.apache.spark.rdd.RDD.iterator(RDD.scala:286)\n\tat org.apache.spark.rdd.MapPartitionsRDD.compute(MapPartitionsRDD.scala:52)\n\tat org.apache.spark.rdd.RDD.computeOrReadCheckpoint(RDD.scala:324)\n\tat org.apache.spark.rdd.RDD$$anonfun$7.apply(RDD.scala:337)\n\tat org.apache.spark.rdd.RDD$$anonfun$7.apply(RDD.scala:335)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1165)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.doPut(BlockManager.scala:1091)\n\tat org.apache.spark.storage.BlockManager.doPutIterator(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.getOrElseUpdate(BlockManager.scala:882)\n\tat org.apache.spark.rdd.RDD.getOrCompute(RDD.scala:335)\n\tat org.apache.spark.rdd.RDD.iterator(RDD.scala:286)\n\tat org.apache.spark.scheduler.ResultTask.runTask(ResultTask.scala:90)\n\tat org.apache.spark.scheduler.Task.run(Task.scala:123)\n\tat org.apache.spark.executor.Executor$TaskRunner$$anonfun$10.apply(Executor.scala:408)\n",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[0;31mPy4JJavaError\u001b[0m                             Traceback (most recent call last)",
+      "\u001b[0;32m<ipython-input-7-98bb2a422c06>\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0mmodel_start_time\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mtime\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtime\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 2\u001b[0;31m \u001b[0mratings\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mfactor_model\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mfit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mtrain\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      3\u001b[0m \u001b[0mstop_train_time\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0mtime\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtime\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0mprint\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mstop_train_time\u001b[0m\u001b[0;34m-\u001b[0m\u001b[0mmodel_start_time\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;32m/usr/local/spark/python/pyspark/ml/base.py\u001b[0m in \u001b[0;36mfit\u001b[0;34m(self, dataset, params)\u001b[0m\n\u001b[1;32m    130\u001b[0m                 \u001b[0;32mreturn\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcopy\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mparams\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_fit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdataset\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    131\u001b[0m             \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 132\u001b[0;31m                 \u001b[0;32mreturn\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_fit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdataset\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    133\u001b[0m         \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    134\u001b[0m             raise ValueError(\"Params must be either a param map or a list/tuple of param maps, \"\n",
+      "\u001b[0;32m/usr/local/spark/python/pyspark/ml/wrapper.py\u001b[0m in \u001b[0;36m_fit\u001b[0;34m(self, dataset)\u001b[0m\n\u001b[1;32m    293\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    294\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0m_fit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdataset\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 295\u001b[0;31m         \u001b[0mjava_model\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_fit_java\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdataset\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    296\u001b[0m         \u001b[0mmodel\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_create_model\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mjava_model\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    297\u001b[0m         \u001b[0;32mreturn\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_copyValues\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mmodel\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;32m/usr/local/spark/python/pyspark/ml/wrapper.py\u001b[0m in \u001b[0;36m_fit_java\u001b[0;34m(self, dataset)\u001b[0m\n\u001b[1;32m    290\u001b[0m         \"\"\"\n\u001b[1;32m    291\u001b[0m         \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_transfer_params_to_java\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 292\u001b[0;31m         \u001b[0;32mreturn\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_java_obj\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mfit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mdataset\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_jdf\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m    293\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    294\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0m_fit\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mself\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdataset\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;32m/usr/local/spark/python/lib/py4j-0.10.7-src.zip/py4j/java_gateway.py\u001b[0m in \u001b[0;36m__call__\u001b[0;34m(self, *args)\u001b[0m\n\u001b[1;32m   1255\u001b[0m         \u001b[0manswer\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0mself\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mgateway_client\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0msend_command\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0mcommand\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1256\u001b[0m         return_value = get_return_value(\n\u001b[0;32m-> 1257\u001b[0;31m             answer, self.gateway_client, self.target_id, self.name)\n\u001b[0m\u001b[1;32m   1258\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m   1259\u001b[0m         \u001b[0;32mfor\u001b[0m \u001b[0mtemp_arg\u001b[0m \u001b[0;32min\u001b[0m \u001b[0mtemp_args\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;32m/usr/local/spark/python/pyspark/sql/utils.py\u001b[0m in \u001b[0;36mdeco\u001b[0;34m(*a, **kw)\u001b[0m\n\u001b[1;32m     61\u001b[0m     \u001b[0;32mdef\u001b[0m \u001b[0mdeco\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0ma\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkw\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     62\u001b[0m         \u001b[0;32mtry\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 63\u001b[0;31m             \u001b[0;32mreturn\u001b[0m \u001b[0mf\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m*\u001b[0m\u001b[0ma\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0;34m**\u001b[0m\u001b[0mkw\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     64\u001b[0m         \u001b[0;32mexcept\u001b[0m \u001b[0mpy4j\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mprotocol\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mPy4JJavaError\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     65\u001b[0m             \u001b[0ms\u001b[0m \u001b[0;34m=\u001b[0m \u001b[0me\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mjava_exception\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtoString\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+      "\u001b[0;32m/usr/local/spark/python/lib/py4j-0.10.7-src.zip/py4j/protocol.py\u001b[0m in \u001b[0;36mget_return_value\u001b[0;34m(answer, gateway_client, target_id, name)\u001b[0m\n\u001b[1;32m    326\u001b[0m                 raise Py4JJavaError(\n\u001b[1;32m    327\u001b[0m                     \u001b[0;34m\"An error occurred while calling {0}{1}{2}.\\n\"\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m--> 328\u001b[0;31m                     format(target_id, \".\", name), value)\n\u001b[0m\u001b[1;32m    329\u001b[0m             \u001b[0;32melse\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m    330\u001b[0m                 raise Py4JError(\n",
+      "\u001b[0;31mPy4JJavaError\u001b[0m: An error occurred while calling o33.fit.\n: org.apache.spark.SparkException: Job aborted due to stage failure: Task 8 in stage 6.0 failed 1 times, most recent failure: Lost task 8.0 in stage 6.0 (TID 47, localhost, executor driver): java.lang.OutOfMemoryError: Java heap space\n\tat scala.collection.mutable.ArrayBuilder$ofInt.mkArray(ArrayBuilder.scala:335)\n\tat scala.collection.mutable.ArrayBuilder$ofInt.result(ArrayBuilder.scala:383)\n\tat scala.collection.mutable.ArrayBuilder$ofInt.result(ArrayBuilder.scala:328)\n\tat org.apache.spark.ml.recommendation.ALS$UncompressedInBlockBuilder.build(ALS.scala:1391)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$23.apply(ALS.scala:1599)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$23.apply(ALS.scala:1593)\n\tat org.apache.spark.rdd.PairRDDFunctions$$anonfun$mapValues$1$$anonfun$apply$37$$anonfun$apply$38.apply(PairRDDFunctions.scala:757)\n\tat org.apache.spark.rdd.PairRDDFunctions$$anonfun$mapValues$1$$anonfun$apply$37$$anonfun$apply$38.apply(PairRDDFunctions.scala:757)\n\tat scala.collection.Iterator$$anon$11.next(Iterator.scala:410)\n\tat org.apache.spark.storage.memory.MemoryStore.putIterator(MemoryStore.scala:222)\n\tat org.apache.spark.storage.memory.MemoryStore.putIteratorAsValues(MemoryStore.scala:299)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1165)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.doPut(BlockManager.scala:1091)\n\tat org.apache.spark.storage.BlockManager.doPutIterator(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.getOrElseUpdate(BlockManager.scala:882)\n\tat org.apache.spark.rdd.RDD.getOrCompute(RDD.scala:335)\n\tat org.apache.spark.rdd.RDD.iterator(RDD.scala:286)\n\tat org.apache.spark.rdd.MapPartitionsRDD.compute(MapPartitionsRDD.scala:52)\n\tat org.apache.spark.rdd.RDD.computeOrReadCheckpoint(RDD.scala:324)\n\tat org.apache.spark.rdd.RDD$$anonfun$7.apply(RDD.scala:337)\n\tat org.apache.spark.rdd.RDD$$anonfun$7.apply(RDD.scala:335)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1165)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.doPut(BlockManager.scala:1091)\n\tat org.apache.spark.storage.BlockManager.doPutIterator(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.getOrElseUpdate(BlockManager.scala:882)\n\tat org.apache.spark.rdd.RDD.getOrCompute(RDD.scala:335)\n\tat org.apache.spark.rdd.RDD.iterator(RDD.scala:286)\n\tat org.apache.spark.scheduler.ResultTask.runTask(ResultTask.scala:90)\n\tat org.apache.spark.scheduler.Task.run(Task.scala:123)\n\tat org.apache.spark.executor.Executor$TaskRunner$$anonfun$10.apply(Executor.scala:408)\n\nDriver stacktrace:\n\tat org.apache.spark.scheduler.DAGScheduler.org$apache$spark$scheduler$DAGScheduler$$failJobAndIndependentStages(DAGScheduler.scala:1889)\n\tat org.apache.spark.scheduler.DAGScheduler$$anonfun$abortStage$1.apply(DAGScheduler.scala:1877)\n\tat org.apache.spark.scheduler.DAGScheduler$$anonfun$abortStage$1.apply(DAGScheduler.scala:1876)\n\tat scala.collection.mutable.ResizableArray$class.foreach(ResizableArray.scala:59)\n\tat scala.collection.mutable.ArrayBuffer.foreach(ArrayBuffer.scala:48)\n\tat org.apache.spark.scheduler.DAGScheduler.abortStage(DAGScheduler.scala:1876)\n\tat org.apache.spark.scheduler.DAGScheduler$$anonfun$handleTaskSetFailed$1.apply(DAGScheduler.scala:926)\n\tat org.apache.spark.scheduler.DAGScheduler$$anonfun$handleTaskSetFailed$1.apply(DAGScheduler.scala:926)\n\tat scala.Option.foreach(Option.scala:257)\n\tat org.apache.spark.scheduler.DAGScheduler.handleTaskSetFailed(DAGScheduler.scala:926)\n\tat org.apache.spark.scheduler.DAGSchedulerEventProcessLoop.doOnReceive(DAGScheduler.scala:2110)\n\tat org.apache.spark.scheduler.DAGSchedulerEventProcessLoop.onReceive(DAGScheduler.scala:2059)\n\tat org.apache.spark.scheduler.DAGSchedulerEventProcessLoop.onReceive(DAGScheduler.scala:2048)\n\tat org.apache.spark.util.EventLoop$$anon$1.run(EventLoop.scala:49)\n\tat org.apache.spark.scheduler.DAGScheduler.runJob(DAGScheduler.scala:737)\n\tat org.apache.spark.SparkContext.runJob(SparkContext.scala:2061)\n\tat org.apache.spark.SparkContext.runJob(SparkContext.scala:2082)\n\tat org.apache.spark.SparkContext.runJob(SparkContext.scala:2101)\n\tat org.apache.spark.SparkContext.runJob(SparkContext.scala:2126)\n\tat org.apache.spark.rdd.RDD.count(RDD.scala:1168)\n\tat org.apache.spark.ml.recommendation.ALS$.train(ALS.scala:932)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$fit$1.apply(ALS.scala:676)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$fit$1.apply(ALS.scala:658)\n\tat org.apache.spark.ml.util.Instrumentation$$anonfun$11.apply(Instrumentation.scala:185)\n\tat scala.util.Try$.apply(Try.scala:192)\n\tat org.apache.spark.ml.util.Instrumentation$.instrumented(Instrumentation.scala:185)\n\tat org.apache.spark.ml.recommendation.ALS.fit(ALS.scala:658)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n\tat sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n\tat sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n\tat java.lang.reflect.Method.invoke(Method.java:498)\n\tat py4j.reflection.MethodInvoker.invoke(MethodInvoker.java:244)\n\tat py4j.reflection.ReflectionEngine.invoke(ReflectionEngine.java:357)\n\tat py4j.Gateway.invoke(Gateway.java:282)\n\tat py4j.commands.AbstractCommand.invokeMethod(AbstractCommand.java:132)\n\tat py4j.commands.CallCommand.execute(CallCommand.java:79)\n\tat py4j.GatewayConnection.run(GatewayConnection.java:238)\n\tat java.lang.Thread.run(Thread.java:748)\nCaused by: java.lang.OutOfMemoryError: Java heap space\n\tat scala.collection.mutable.ArrayBuilder$ofInt.mkArray(ArrayBuilder.scala:335)\n\tat scala.collection.mutable.ArrayBuilder$ofInt.result(ArrayBuilder.scala:383)\n\tat scala.collection.mutable.ArrayBuilder$ofInt.result(ArrayBuilder.scala:328)\n\tat org.apache.spark.ml.recommendation.ALS$UncompressedInBlockBuilder.build(ALS.scala:1391)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$23.apply(ALS.scala:1599)\n\tat org.apache.spark.ml.recommendation.ALS$$anonfun$23.apply(ALS.scala:1593)\n\tat org.apache.spark.rdd.PairRDDFunctions$$anonfun$mapValues$1$$anonfun$apply$37$$anonfun$apply$38.apply(PairRDDFunctions.scala:757)\n\tat org.apache.spark.rdd.PairRDDFunctions$$anonfun$mapValues$1$$anonfun$apply$37$$anonfun$apply$38.apply(PairRDDFunctions.scala:757)\n\tat scala.collection.Iterator$$anon$11.next(Iterator.scala:410)\n\tat org.apache.spark.storage.memory.MemoryStore.putIterator(MemoryStore.scala:222)\n\tat org.apache.spark.storage.memory.MemoryStore.putIteratorAsValues(MemoryStore.scala:299)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1165)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.doPut(BlockManager.scala:1091)\n\tat org.apache.spark.storage.BlockManager.doPutIterator(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.getOrElseUpdate(BlockManager.scala:882)\n\tat org.apache.spark.rdd.RDD.getOrCompute(RDD.scala:335)\n\tat org.apache.spark.rdd.RDD.iterator(RDD.scala:286)\n\tat org.apache.spark.rdd.MapPartitionsRDD.compute(MapPartitionsRDD.scala:52)\n\tat org.apache.spark.rdd.RDD.computeOrReadCheckpoint(RDD.scala:324)\n\tat org.apache.spark.rdd.RDD$$anonfun$7.apply(RDD.scala:337)\n\tat org.apache.spark.rdd.RDD$$anonfun$7.apply(RDD.scala:335)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1165)\n\tat org.apache.spark.storage.BlockManager$$anonfun$doPutIterator$1.apply(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.doPut(BlockManager.scala:1091)\n\tat org.apache.spark.storage.BlockManager.doPutIterator(BlockManager.scala:1156)\n\tat org.apache.spark.storage.BlockManager.getOrElseUpdate(BlockManager.scala:882)\n\tat org.apache.spark.rdd.RDD.getOrCompute(RDD.scala:335)\n\tat org.apache.spark.rdd.RDD.iterator(RDD.scala:286)\n\tat org.apache.spark.scheduler.ResultTask.runTask(ResultTask.scala:90)\n\tat org.apache.spark.scheduler.Task.run(Task.scala:123)\n\tat org.apache.spark.executor.Executor$TaskRunner$$anonfun$10.apply(Executor.scala:408)\n"
      ]
     }
    ],
@@ -93,17 +161,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 7,
+   "execution_count": null,
    "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "0.04359006881713867\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "predict=ratings.transform(test)\n",
     "transform_test_time=time.time()\n",
@@ -128,18 +188,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 8,
+   "execution_count": null,
    "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "0.9072628297095641\n",
-      "0.0\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "rmse_2_end_time=time.time()\n",
     "evaluator = RegressionEvaluator(metricName=\"rmse\", labelCol=\"rating\",\n",
@@ -152,18 +203,9 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 11,
+   "execution_count": null,
    "metadata": {},
-   "outputs": [
-    {
-     "name": "stdout",
-     "output_type": "stream",
-     "text": [
-      "total_time from load to RMSE =13.992796421051025\n",
-      "total_time from model to RMSE =6.8849945068359375\n"
-     ]
-    }
-   ],
+   "outputs": [],
    "source": [
     "load_to_end = rmse_2_end_time-start_time\n",
     "model_to_end = rmse_2_end_time-model_start_time\n",
